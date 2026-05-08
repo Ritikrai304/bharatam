@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   MapPin, Users, History, Palette, Heart, ChevronRight, Menu, X, 
   ArrowRight, Landmark, Music, Utensils, Send, CheckCircle2, Search,
-  Play, ExternalLink
+  Play, ExternalLink, Sparkles, Bot, MessageSquare, Loader2
 } from 'lucide-react';
 
 export default function App() {
@@ -13,6 +13,53 @@ export default function App() {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
   const [showVideo, setShowVideo] = useState(false);
+  
+  // AI Chat State
+  const [showAIChat, setShowAIChat] = useState(false);
+  const [chatInput, setChatInput] = useState('');
+  const [chatMessages, setChatMessages] = useState<{role: 'user' | 'ai', text: string}[]>([
+    { role: 'ai', text: 'Namaste! Main Bharatam AI assistant hoon. Aap mujhse Bharat ke itihas, sanskriti ya kisi bhi iconic jagah ke baare mein pooch sakte hain.' }
+  ]);
+  const [isTyping, setIsTyping] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [chatMessages]);
+
+  const handleAIChat = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!chatInput.trim() || isTyping) return;
+
+    const userMsg = chatInput;
+    setChatInput('');
+    setChatMessages(prev => [...prev, { role: 'user', text: userMsg }]);
+    setIsTyping(true);
+
+    try {
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: `You are a helpful AI assistant for the "Bharatam" project. Your goal is to provide information about India's history, culture, landmarks, and unity in a friendly and respectful manner. Keep your answers concise and engaging. User says: ${userMsg}` }] }]
+        })
+      });
+
+      const data = await response.json();
+      const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || "Maaf kijiye, main abhi samajh nahi pa raha hoon. Kripya phir se poochein.";
+      
+      setChatMessages(prev => [...prev, { role: 'ai', text: aiResponse }]);
+    } catch (error) {
+      setChatMessages(prev => [...prev, { role: 'ai', text: "Network error! Kripya check karein ki .env file mein API Key sahi hai." }]);
+    } finally {
+      setIsTyping(false);
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -457,6 +504,90 @@ export default function App() {
           </div>
         </div>
       </footer>
+
+      {/* AI Chat Button */}
+      <motion.button
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        onClick={() => setShowAIChat(true)}
+        className="fixed bottom-8 right-8 z-50 w-16 h-16 bg-navy text-white rounded-full shadow-2xl flex items-center justify-center group overflow-hidden"
+      >
+        <div className="absolute inset-0 bg-gradient-to-tr from-saffron via-transparent to-green opacity-0 group-hover:opacity-20 transition-opacity"></div>
+        <Sparkles size={28} className="group-hover:animate-pulse" />
+      </motion.button>
+
+      {/* AI Chat Window */}
+      <AnimatePresence>
+        {showAIChat && (
+          <motion.div
+            initial={{ opacity: 0, y: 100, scale: 0.8 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 100, scale: 0.8 }}
+            className="fixed bottom-28 right-8 z-50 w-[90vw] md:w-[400px] h-[500px] bg-white rounded-[2.5rem] shadow-[0_20px_60px_-15px_rgba(0,0,128,0.3)] border border-slate-100 flex flex-col overflow-hidden"
+          >
+            {/* Header */}
+            <div className="bg-navy p-6 flex items-center justify-between">
+              <div className="flex items-center gap-3 text-white">
+                <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
+                  <Bot size={22} className="text-saffron" />
+                </div>
+                <div>
+                  <h4 className="font-black leading-none">Bharatam AI</h4>
+                  <p className="text-[10px] text-white/50 uppercase font-bold tracking-widest mt-1">Always Online</p>
+                </div>
+              </div>
+              <button onClick={() => setShowAIChat(false)} className="text-white/40 hover:text-white transition-colors">
+                <X size={24} />
+              </button>
+            </div>
+
+            {/* Messages */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 no-scrollbar">
+              {chatMessages.map((msg, idx) => (
+                <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`max-w-[80%] p-4 rounded-3xl font-medium text-sm ${
+                    msg.role === 'user' 
+                    ? 'bg-navy text-white rounded-tr-none' 
+                    : 'bg-slate-100 text-slate-700 rounded-tl-none'
+                  }`}>
+                    {msg.text}
+                  </div>
+                </div>
+              ))}
+              {isTyping && (
+                <div className="flex justify-start">
+                  <div className="bg-slate-100 p-4 rounded-3xl rounded-tl-none flex gap-1">
+                    <motion.div animate={{ scale: [1, 1.5, 1] }} transition={{ repeat: Infinity, duration: 1 }} className="w-1 h-1 bg-slate-400 rounded-full" />
+                    <motion.div animate={{ scale: [1, 1.5, 1] }} transition={{ repeat: Infinity, duration: 1, delay: 0.2 }} className="w-1 h-1 bg-slate-400 rounded-full" />
+                    <motion.div animate={{ scale: [1, 1.5, 1] }} transition={{ repeat: Infinity, duration: 1, delay: 0.4 }} className="w-1 h-1 bg-slate-400 rounded-full" />
+                  </div>
+                </div>
+              )}
+              <div ref={chatEndRef} />
+            </div>
+
+            {/* Input */}
+            <form onSubmit={handleAIChat} className="p-6 border-t border-slate-50">
+              <div className="relative">
+                <input
+                  type="text"
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  placeholder="Ask something..."
+                  className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 pr-14 text-sm font-bold focus:outline-none focus:border-navy transition-all"
+                />
+                <button 
+                  type="submit"
+                  disabled={isTyping}
+                  className="absolute right-2 top-2 bottom-2 w-10 bg-navy text-white rounded-xl flex items-center justify-center hover:bg-slate-800 transition-all disabled:opacity-50"
+                >
+                  {isTyping ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <style>{`
         .no-scrollbar::-webkit-scrollbar {
