@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { 
   MapPin, Users, History, Palette, Heart, ChevronRight, Menu, X, 
   ArrowRight, Landmark, Music, Utensils, Send, CheckCircle2, Search,
-  Play, ExternalLink, Sparkles, Bot, MessageSquare, Loader2
+  Play, ExternalLink, Sparkles, Bot, MessageSquare, Loader2,
+  Calendar, Globe, Shield, Star, Award, Compass, Languages
 } from 'lucide-react';
 
 export default function App() {
@@ -13,7 +14,17 @@ export default function App() {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
   const [showVideo, setShowVideo] = useState(false);
+  const [activeEra, setActiveEra] = useState(0);
   
+  const heroRef = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ["start start", "end start"]
+  });
+
+  const heroY = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
+
   // AI Chat State
   const [showAIChat, setShowAIChat] = useState(false);
   const [chatInput, setChatInput] = useState('');
@@ -30,6 +41,14 @@ export default function App() {
   useEffect(() => {
     scrollToBottom();
   }, [chatMessages]);
+
+  const eras = useMemo(() => [
+    { year: "3300 BCE", title: "Indus Valley", desc: "One of the world's earliest urban civilizations with advanced city planning.", icon: <Globe size={20} /> },
+    { year: "1500 BCE", title: "Vedic Period", desc: "The foundation of Indian philosophy, Vedas, and spiritual traditions.", icon: <Languages size={20} /> },
+    { year: "320 BCE", title: "Mauryan Empire", desc: "First major empire covering most of the subcontinent under Ashoka the Great.", icon: <Shield size={20} /> },
+    { year: "320 CE", title: "Golden Age", desc: "Gupta Empire: Unprecedented progress in science, math, and arts.", icon: <Star size={20} /> },
+    { year: "1947 CE", title: "Independence", desc: "The birth of the world's largest democracy through non-violence.", icon: <Award size={20} /> }
+  ], []);
 
   const handleAIChat = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -209,85 +228,105 @@ export default function App() {
       </AnimatePresence>
 
       {/* Hero Section */}
-      <section className="relative pt-40 pb-20 px-6 overflow-hidden">
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
+      <section ref={heroRef} className="relative min-h-screen flex items-center pt-20 px-6 overflow-hidden bg-navy">
+        <motion.div 
+          style={{ y: heroY, opacity: heroOpacity }}
+          className="absolute inset-0 z-0"
+        >
+          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1524492459413-0296b7482673?auto=format&fit=crop&q=80&w=2000')] bg-cover bg-center mix-blend-overlay opacity-40"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-navy/20 via-navy/50 to-white"></div>
+        </motion.div>
+
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center relative z-10">
           <motion.div 
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-orange-100/80 text-saffron rounded-full text-xs font-black uppercase tracking-widest mb-8 border border-saffron/20">
-              <Landmark size={14} /> Eternal Heritage
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-saffron/20 text-saffron rounded-full text-xs font-black uppercase tracking-widest mb-8 border border-saffron/30 backdrop-blur-md">
+              <Sparkles size={14} className="animate-pulse" /> Super Premium Experience
             </div>
-            <h1 className="text-6xl md:text-8xl font-black text-navy leading-[0.95] mb-8 tracking-tighter">
-              Experience the <br />
-              <span className="text-saffron">Soul of India</span>
+            <h1 className="text-7xl md:text-9xl font-black text-white leading-[0.9] mb-8 tracking-tighter">
+              Discover <br />
+              <span className="text-saffron">Bharatam</span>
             </h1>
-            <p className="text-xl text-slate-500 mb-12 max-w-lg leading-relaxed font-medium">
-              Step into a world where 5,000 years of history meets the future. From the peaks of Himalayas to the shores of Kanyakumari.
+            <p className="text-xl text-white/70 mb-12 max-w-lg leading-relaxed font-medium">
+              Explore the timeless heritage, vibrant culture, and the soaring spirit of a civilization that continues to inspire the world.
             </p>
             <div className="flex flex-col sm:flex-row gap-5">
               <a 
                 href="#landmarks"
-                className="bg-navy text-white px-10 py-5 rounded-[2rem] font-bold text-lg hover:shadow-2xl hover:shadow-navy/30 transition-all flex items-center justify-center gap-3 group active:scale-95"
+                className="bg-saffron text-white px-10 py-5 rounded-[2rem] font-black text-lg hover:shadow-[0_20px_50px_-10px_rgba(255,153,51,0.5)] transition-all flex items-center justify-center gap-3 group active:scale-95"
               >
-                Start Exploring <ArrowRight size={22} className="group-hover:translate-x-1 transition-transform" />
+                Start Exploring <Compass size={22} className="group-hover:rotate-180 transition-transform duration-500" />
               </a>
               <button 
                 onClick={() => setShowVideo(true)}
-                className="bg-white text-navy border-2 border-slate-100 px-10 py-5 rounded-[2rem] font-bold text-lg hover:border-navy hover:bg-slate-50 transition-all active:scale-95 flex items-center justify-center gap-3"
+                className="bg-white/10 backdrop-blur-md text-white border-2 border-white/20 px-10 py-5 rounded-[2rem] font-bold text-lg hover:bg-white/20 transition-all active:scale-95 flex items-center justify-center gap-3"
               >
-                <Play size={22} className="fill-navy" /> Watch Story
+                <Play size={22} className="fill-white" /> Watch Story
               </button>
-            </div>
-            
-            <div className="mt-16 flex items-center gap-6">
-              <div className="flex -space-x-4">
-                {[1,2,3,4].map(i => (
-                  <div key={i} className="w-12 h-12 rounded-full border-4 border-white bg-slate-200 overflow-hidden">
-                    <img src={`https://i.pravatar.cc/150?u=${i}`} alt="user" />
-                  </div>
-                ))}
-              </div>
-              <p className="text-sm font-bold text-slate-400">
-                <span className="text-navy">10k+</span> People exploring daily
-              </p>
             </div>
           </motion.div>
 
           <motion.div 
-            initial={{ opacity: 0, scale: 0.8, rotate: -5 }}
-            animate={{ opacity: 1, scale: 1, rotate: 0 }}
-            transition={{ duration: 1, ease: "easeOut" }}
-            className="relative"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1 }}
+            className="hidden lg:block relative"
           >
-            <div className="relative z-10 aspect-[4/5] rounded-[4rem] overflow-hidden shadow-2xl bg-gradient-to-br from-saffron/10 via-white to-green/10 border-[12px] border-white">
-              <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1548013146-72479768bbaa?auto=format&fit=crop&q=80&w=1000')] bg-cover bg-center grayscale-[0.2] hover:grayscale-0 transition-all duration-700 hover:scale-105"></div>
-              <div className="absolute inset-0 bg-gradient-to-t from-navy/60 to-transparent"></div>
-              <div className="absolute bottom-12 left-12 right-12 text-white">
-                <p className="text-sm font-bold uppercase tracking-widest mb-2 text-saffron">Must Visit</p>
-                <h3 className="text-4xl font-black mb-2">Taj Mahal, Agra</h3>
-                <p className="text-white/80 font-medium">Symbol of Eternal Love</p>
+            <div className="relative group">
+              <div className="absolute -inset-4 bg-gradient-to-r from-saffron to-green rounded-[4rem] opacity-20 blur-2xl group-hover:opacity-40 transition-opacity"></div>
+              <div className="relative aspect-square rounded-[4rem] overflow-hidden border-[12px] border-white/10 shadow-2xl backdrop-blur-3xl bg-white/5 p-12 flex flex-col items-center justify-center text-center">
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                  className="w-48 h-48 border-4 border-dashed border-saffron/30 rounded-full flex items-center justify-center mb-8"
+                >
+                  <div className="w-32 h-32 bg-saffron/10 rounded-full flex items-center justify-center">
+                    <MapPin size={60} className="text-saffron" />
+                  </div>
+                </motion.div>
+                <h3 className="text-3xl font-black text-white mb-2 tracking-tight">Bharat Mata</h3>
+                <p className="text-white/50 font-bold uppercase tracking-widest text-sm">Unity in Diversity</p>
               </div>
             </div>
-            
-            {/* Floating Elements */}
-            <motion.div 
-              animate={{ y: [0, -20, 0] }}
-              transition={{ duration: 4, repeat: Infinity }}
-              className="absolute -top-10 -right-10 bg-white p-6 rounded-3xl shadow-2xl border border-slate-100 hidden lg:block z-20"
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center">
-                  <Heart className="text-red-500" fill="currentColor" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-slate-400 uppercase">Diversity</p>
-                  <p className="text-lg font-black text-navy leading-none">Unity</p>
-                </div>
-              </div>
-            </motion.div>
           </motion.div>
+        </div>
+      </section>
+
+      {/* Timeline Section */}
+      <section className="py-32 px-6 bg-white overflow-hidden" id="history">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-20">
+            <h2 className="text-5xl md:text-7xl font-black text-navy mb-6 tracking-tighter">Timeline of Wisdom</h2>
+            <p className="text-xl text-slate-500 font-medium max-w-2xl mx-auto">Five millennia of progress, spirituality, and triumph.</p>
+          </div>
+
+          <div className="relative">
+            {/* Timeline Line */}
+            <div className="absolute top-1/2 left-0 w-full h-1 bg-slate-100 -translate-y-1/2 hidden lg:block"></div>
+            
+            <div className="grid lg:grid-cols-5 gap-8 relative z-10">
+              {eras.map((era, idx) => (
+                <motion.div 
+                  key={idx}
+                  whileHover={{ y: -10 }}
+                  onClick={() => setActiveEra(idx)}
+                  className={`cursor-pointer p-8 rounded-[2.5rem] transition-all duration-500 ${activeEra === idx ? 'bg-navy text-white shadow-2xl' : 'bg-slate-50 text-navy hover:bg-slate-100'}`}
+                >
+                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 shadow-lg ${activeEra === idx ? 'bg-saffron text-white' : 'bg-white text-navy'}`}>
+                    {era.icon}
+                  </div>
+                  <p className={`text-sm font-black mb-2 ${activeEra === idx ? 'text-saffron' : 'text-slate-400'}`}>{era.year}</p>
+                  <h3 className="text-2xl font-black mb-4 tracking-tight">{era.title}</h3>
+                  <p className={`text-sm font-medium leading-relaxed ${activeEra === idx ? 'text-white/70' : 'text-slate-500'}`}>
+                    {era.desc}
+                  </p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
