@@ -15,6 +15,23 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('all');
   const [showVideo, setShowVideo] = useState(false);
   const [activeEra, setActiveEra] = useState(0);
+  const [selectedState, setSelectedState] = useState<number | null>(null);
+
+  const states = useMemo(() => [
+    { name: "Rajasthan", capital: "Jaipur", highlight: "Royal Palaces & Desert", color: "from-orange-400 to-red-500", icon: "🏰" },
+    { name: "Kerala", capital: "Thiruvananthapuram", highlight: "Backwaters & Ayurveda", color: "from-green-400 to-emerald-600", icon: "🌴" },
+    { name: "Punjab", capital: "Chandigarh", highlight: "Golden Temple & Agriculture", color: "from-yellow-400 to-orange-500", icon: "🌾" },
+    { name: "Maharashtra", capital: "Mumbai", highlight: "Financial Hub & Caves", color: "from-blue-400 to-indigo-600", icon: "🏢" },
+    { name: "Tamil Nadu", capital: "Chennai", highlight: "Ancient Temples & Arts", color: "from-red-400 to-pink-600", icon: "🛕" },
+    { name: "West Bengal", capital: "Kolkata", highlight: "Literature & Sundarbans", color: "from-teal-400 to-cyan-600", icon: "🐅" }
+  ], []);
+
+  const artForms = useMemo(() => [
+    { title: "Kathakali", type: "Dance", origin: "Kerala", image: "https://images.unsplash.com/photo-1610991148731-3067f76323bc?auto=format&fit=crop&q=80&w=400" },
+    { title: "Sitar", type: "Music", origin: "Varanasi", image: "https://images.unsplash.com/photo-1599933310631-7528a67d9834?auto=format&fit=crop&q=80&w=400" },
+    { title: "Madhubani", type: "Painting", origin: "Bihar", image: "https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3?auto=format&fit=crop&q=80&w=400" },
+    { title: "Bharatnatyam", type: "Dance", origin: "Tamil Nadu", image: "https://images.unsplash.com/photo-1621430485603-49033f7c35f2?auto=format&fit=crop&q=80&w=400" }
+  ], []);
   
   const heroRef = useRef(null);
   const { scrollYProgress } = useScroll({
@@ -330,7 +347,76 @@ export default function App() {
         </div>
       </section>
 
-      {/* Search/Filter Landmarks */}
+      {/* States Explorer Section */}
+      <section className="py-32 px-6 bg-slate-50 overflow-hidden">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-20">
+            <div>
+              <h2 className="text-5xl md:text-7xl font-black text-navy mb-6 tracking-tighter">States of Bharatam</h2>
+              <p className="text-xl text-slate-500 font-medium max-w-xl">A mosaic of cultures, traditions, and colors across the subcontinent.</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {states.map((state, idx) => (
+              <motion.div
+                key={idx}
+                whileHover={{ y: -10 }}
+                onClick={() => setSelectedState(idx)}
+                className={`relative group cursor-pointer h-64 rounded-[3rem] overflow-hidden shadow-xl transition-all duration-500 ${selectedState === idx ? 'ring-4 ring-saffron ring-offset-4' : ''}`}
+              >
+                <div className={`absolute inset-0 bg-gradient-to-br ${state.color} opacity-90 group-hover:opacity-100 transition-opacity`}></div>
+                <div className="relative h-full p-10 flex flex-col justify-between text-white">
+                  <div className="text-5xl">{state.icon}</div>
+                  <div>
+                    <h3 className="text-3xl font-black mb-1 tracking-tight">{state.name}</h3>
+                    <p className="text-white/80 font-bold text-sm uppercase tracking-widest">{state.capital}</p>
+                    <motion.p 
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: selectedState === idx ? 1 : 0, height: selectedState === idx ? 'auto' : 0 }}
+                      className="mt-4 text-sm font-medium border-t border-white/20 pt-4"
+                    >
+                      {state.highlight}
+                    </motion.p>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Art Forms Gallery */}
+      <section className="py-32 px-6 bg-white overflow-hidden" id="culture">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-20">
+            <h2 className="text-5xl md:text-7xl font-black text-navy mb-6 tracking-tighter">Living Arts</h2>
+            <p className="text-xl text-slate-500 font-medium max-w-2xl mx-auto">Where every move tells a story and every note echoes through time.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {artForms.map((art, idx) => (
+              <motion.div
+                key={idx}
+                whileHover={{ scale: 1.02 }}
+                className="relative aspect-[3/4] rounded-[2.5rem] overflow-hidden group shadow-lg"
+              >
+                <img src={art.image} alt={art.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                <div className="absolute inset-0 bg-gradient-to-t from-navy/90 via-navy/20 to-transparent"></div>
+                <div className="absolute bottom-8 left-8 right-8 text-white">
+                  <span className="inline-block px-3 py-1 bg-saffron/80 rounded-full text-[10px] font-black uppercase tracking-widest mb-3">
+                    {art.type}
+                  </span>
+                  <h3 className="text-2xl font-black mb-1">{art.title}</h3>
+                  <p className="text-white/60 text-sm font-bold flex items-center gap-1">
+                    <MapPin size={12} className="text-saffron" /> {art.origin}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
       <section className="py-24 px-6 bg-slate-50/50" id="landmarks">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16">
